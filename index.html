@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwiftReply - AI Receptionist for Colombo Businesses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'page-bg': '#020617', // Slate 950
+              'card-bg': '#0f172a', // Slate 900
+              'accent': '#34d399', // Emerald 400
+              'accent-hover': '#10b981', // Emerald 500
+              'text-main': '#f8fafc', // Slate 50
+              'text-muted': '#94a3b8', // Slate 400
+            },
+            fontFamily: {
+              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #020617;
+        color: #f8fafc;
+      }
+      /* Hide scrollbar for cleaner UI */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      /* Animations */
+      @keyframes ping-slow {
+        0% { transform: scale(1); opacity: 1; }
+        75%, 100% { transform: scale(2); opacity: 0; }
+      }
+      .animate-ping-slow {
+        animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      /* Audio visualizer bar animation */
+      @keyframes height-mod {
+        0%, 100% { height: 100%; }
+        50% { height: 30%; }
+      }
+      .visualizer-bar {
+        animation: height-mod 0.4s ease-in-out infinite;
+      }
+    </style>
+    <!-- Import Map for Google GenAI SDK -->
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@0.1.1",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+</head>
+<body class="bg-page-bg text-text-main selection:bg-accent selection:text-black overflow-x-hidden">
+
+    <!-- Mock process.env for the SDK usage -->
+    <script>
+        window.process = {
+            env: {
+                API_KEY: 'AIzaSyDR_XX3QSAYLFNhH0P9CxJUe4-hUrDwXfE' 
+            }
+        };
+    </script>
+
+    <!-- Background Decor -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="w-full max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+        <div class="text-2xl font-bold tracking-tighter text-white">
+            SwiftReply<span class="text-accent">.</span>
+        </div>
+        <a href="https://wa.me/94770000000" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">
+            Contact Support
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="w-full max-w-4xl mx-auto px-6 pt-12 pb-24 text-center">
+        
+        <!-- Hero Header -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-accent mb-8">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+            </span>
+            Now Available in Colombo
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-[1.1] text-white">
+            You Miss Calls. <br/>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">You Lose Money.</span>
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-gray-400 mb-4 leading-relaxed font-light max-w-2xl mx-auto">
+            SwiftReply answers your customers 24/7 in fluent <span class="text-white font-medium">English</span>, <span class="text-white font-medium">Singlish</span> and <span class="text-white font-medium">Sinhala</span>.
+        </p>
+        <p class="text-lg text-gray-500 mb-12 font-medium">
+            ඔබට ඇමතුම් මග හැරේ. ඔබට මුදල් අහිමි වේ.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+            <a href="https://wa.me/94770000000" target="_blank" class="w-full sm:w-auto">
+                <button class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 text-base font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-page-bg rounded-xl tracking-wide bg-accent hover:bg-accent-hover text-slate-900 shadow-[0_0_20px_-5px_rgba(52,211,153,0.4)]">
+                    Book A Call
+                </button>
+            </a>
+            <button onclick="document.getElementById('demo').scrollIntoView({ behavior: 'smooth' })" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 text-base font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-page-bg rounded-xl tracking-wide bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm">
+                Listen to Demo
+            </button>
+        </div>
+
+        <!-- Audio Evidence Section -->
+        <section class="mb-32 text-left">
+            <div class="flex items-end justify-between mb-10 border-b border-white/10 pb-4">
+                <h2 class="text-3xl font-bold text-white">Audio Evidence</h2>
+                <span class="text-sm text-gray-500 hidden sm:block">Conversations generated by Gemini 2.5</span>
+            </div>
+            
+            <div class="grid gap-6">
+                <!-- Audio Player 1 -->
+                <div class="audio-player-container bg-card-bg border border-white/5 rounded-xl p-6 mb-4 hover:border-accent/30 transition-all duration-300 shadow-lg shadow-black/20 group"
+                     data-speakers='[{"name":"Receptionist","voiceName":"Kore"},{"name":"Patient","voiceName":"Puck"}]'
+                     data-script="Receptionist: Good morning, City Dental Clinic. How can I help you today? Patient: Hi, I'm calling to check if you have any slots for a teeth cleaning tomorrow? Receptionist: Let me check. We have an opening at 4 PM. Does that work for you? Patient: Yes, 4 PM is perfect. Please book it.">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                        <div>
+                            <h3 class="font-semibold text-white group-hover:text-accent transition-colors">Medical Booking (English)</h3>
+                            <p class="text-sm text-gray-400">Receptionist (Kore) & Patient (Puck) • Formal & Clear</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <span class="error-msg hidden text-xs text-red-400 font-bold">Try Reloading</span>
+                             <span class="text-xs font-mono text-accent bg-accent/10 px-2 py-1 rounded border border-accent/20">AI CONVERSATION</span>
+                        </div>
+                    </div>
+                    <div class="player-controls">
+                        <button class="play-btn w-full h-[40px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-accent/50 transition-all duration-200 group/btn">
+                            <div class="icon-play w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-black transition-colors text-accent">
+                                <svg class="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                            <span class="text-sm font-medium text-gray-300 group-hover/btn:text-white">Load & Play Demo</span>
+                        </button>
+                        <div class="loading-indicator hidden w-full h-[40px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg">
+                            <div class="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin"></div>
+                            <span class="text-sm font-medium text-gray-300">Generating Conversation...</span>
+                        </div>
+                        <div class="audio-wrapper hidden w-full">
+                            <!-- Audio tag injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio Player 2 -->
+                <div class="audio-player-container bg-card-bg border border-white/5 rounded-xl p-6 mb-4 hover:border-accent/30 transition-all duration-300 shadow-lg shadow-black/20 group"
+                     data-speakers='[{"name":"Staff","voiceName":"Fenrir"},{"name":"Customer","voiceName":"Zephyr"}]'
+                     data-script="Staff: Hello, Colombo Crab House. Customer: Machan, do you have space for 5 people tonight around 8? Staff: Aney sir, sorry. Tonight full booked ne. Tomorrow lunch okay? Customer: Ah hari hari, tomorrow lunch confirm karanna. Thanks.">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                        <div>
+                            <h3 class="font-semibold text-white group-hover:text-accent transition-colors">Restaurant Reservation (Singlish)</h3>
+                            <p class="text-sm text-gray-400">Staff (Fenrir) & Customer (Zephyr) • Casual & Local</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <span class="error-msg hidden text-xs text-red-400 font-bold">Try Reloading</span>
+                             <span class="text-xs font-mono text-accent bg-accent/10 px-2 py-1 rounded border border-accent/20">AI CONVERSATION</span>
+                        </div>
+                    </div>
+                    <div class="player-controls">
+                        <button class="play-btn w-full h-[40px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-accent/50 transition-all duration-200 group/btn">
+                            <div class="icon-play w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-black transition-colors text-accent">
+                                <svg class="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                            <span class="text-sm font-medium text-gray-300 group-hover/btn:text-white">Load & Play Demo</span>
+                        </button>
+                        <div class="loading-indicator hidden w-full h-[40px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg">
+                            <div class="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin"></div>
+                            <span class="text-sm font-medium text-gray-300">Generating Conversation...</span>
+                        </div>
+                        <div class="audio-wrapper hidden w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Audio Player 3 (SINHALA) -->
+                <div class="audio-player-container bg-card-bg border border-white/5 rounded-xl p-6 mb-4 hover:border-accent/30 transition-all duration-300 shadow-lg shadow-black/20 group"
+                     data-speakers='[{"name":"Receptionist","voiceName":"Charon"},{"name":"Customer","voiceName":"Kore"}]'
+                     data-script="Receptionist: ආයුබෝවන් (Ayubowan), සුව සේවා රෝහල. මම ඔබට උදව් කරන්නේ කෙසේද? Customer: මට හෙට දන්ත සායනය ගැන දැනගන්න පුලුවන්ද? Receptionist: ඔව්, හෙට උදේ 9ට වෛද්‍යවරයා පැමිණෙනවා. Customer: බොහොම ස්තූතියි. මම එන්නම්.">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                        <div>
+                            <h3 class="font-semibold text-white group-hover:text-accent transition-colors">General Inquiry (Sinhala)</h3>
+                            <p class="text-sm text-gray-400">Receptionist (Charon) & Customer (Kore) • Native Language</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <span class="error-msg hidden text-xs text-red-400 font-bold">Try Reloading</span>
+                             <span class="text-xs font-mono text-accent bg-accent/10 px-2 py-1 rounded border border-accent/20">AI CONVERSATION</span>
+                        </div>
+                    </div>
+                    <div class="player-controls">
+                        <button class="play-btn w-full h-[40px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-accent/50 transition-all duration-200 group/btn">
+                            <div class="icon-play w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center group-hover/btn:bg-accent group-hover/btn:text-black transition-colors text-accent">
+                                <svg class="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                            <span class="text-sm font-medium text-gray-300 group-hover/btn:text-white">Load & Play Demo</span>
+                        </button>
+                        <div class="loading-indicator hidden w-full h-[40px] flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-lg">
+                            <div class="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin"></div>
+                            <span class="text-sm font-medium text-gray-300">Generating Conversation...</span>
+                        </div>
+                        <div class="audio-wrapper hidden w-full"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Live Simulator Section -->
+        <div id="demo" class="mb-32 scroll-mt-24 relative w-full">
+            <div class="absolute inset-0 bg-gradient-to-b from-accent/5 to-transparent blur-3xl -z-10 h-1/2"></div>
+            <h2 class="text-3xl font-bold mb-4 text-white">Experience it Live</h2>
+            <p class="text-gray-400 mb-8 text-lg">Talk to our AI right now. See how it handles your questions.</p>
+            
+            <!-- SIMULATOR CONTAINER -->
+            <div id="ls-container" class="w-full max-w-lg mx-auto bg-card-bg border border-white/10 rounded-3xl shadow-2xl shadow-black/50 overflow-hidden ring-1 ring-white/5 flex flex-col h-[500px] relative transition-all duration-500">
+                
+                <!-- Toggle Switch -->
+                <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-black/50 backdrop-blur-md p-1 rounded-full border border-white/10 flex">
+                    <button id="ls-btn-text" class="px-4 py-1.5 rounded-full text-xs font-medium transition-all bg-white text-black shadow-lg">Text Chat</button>
+                    <button id="ls-btn-voice" class="px-4 py-1.5 rounded-full text-xs font-medium transition-all text-gray-400 hover:text-white">Voice Call</button>
+                </div>
+
+                <!-- TEXT MODE UI -->
+                <div id="ls-view-text" class="flex flex-col h-full w-full">
+                    <!-- Header -->
+                    <div class="bg-white/5 border-b border-white/5 p-4 flex items-center justify-between mt-12">
+                        <div class="flex items-center gap-3">
+                            <div id="ls-persona-avatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-700 to-gray-600 flex items-center justify-center text-xs font-bold text-white shadow-inner">CS</div>
+                            <div class="flex flex-col text-left">
+                                <span id="ls-persona-name" class="font-semibold text-sm text-gray-200">Colombo Spice</span>
+                                <span class="text-[10px] text-green-400 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>Online
+                                </span>
+                            </div>
+                        </div>
+                        <button id="ls-btn-switch-persona" class="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider border border-white/10 px-2 py-1 rounded">Switch Persona</button>
+                    </div>
+
+                    <!-- Messages -->
+                    <div id="ls-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-card-bg to-[#0B1221]">
+                        <!-- Messages injected by JS -->
+                    </div>
+
+                    <!-- Input -->
+                    <div class="p-4 bg-black/20 border-t border-white/5">
+                        <div id="ls-suggestions" class="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
+                            <!-- Suggestion chips injected by JS -->
+                        </div>
+                        <form id="ls-chat-form" class="flex gap-2">
+                            <input id="ls-chat-input" type="text" placeholder="Message..." class="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white focus:outline-none focus:border-accent/50 transition-all" />
+                            <button type="submit" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-accent hover:text-black transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M12 5l7 7-7 7" /></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- VOICE MODE UI -->
+                <div id="ls-view-voice" class="hidden flex-1 bg-black flex flex-col items-center justify-between py-12 px-6 relative overflow-hidden h-full w-full">
+                    <!-- Glow -->
+                    <div id="ls-voice-glow" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent/5 rounded-full blur-[80px] animate-pulse hidden"></div>
+
+                    <!-- Info -->
+                    <div class="text-center z-10 mt-8">
+                        <h3 id="ls-voice-persona-name" class="text-2xl font-bold text-white mb-1">Colombo Spice</h3>
+                        <div id="ls-voice-status-active" class="hidden flex flex-col items-center gap-1">
+                             <p id="ls-voice-timer" class="text-gray-400 font-mono text-sm tracking-widest">00:00</p>
+                             <span id="ls-voice-state-text" class="text-xs font-medium uppercase tracking-wider text-accent">Speaking...</span>
+                        </div>
+                        <p id="ls-voice-status-connecting" class="hidden text-accent text-sm animate-pulse font-medium">Calling...</p>
+                        <p id="ls-voice-status-idle" class="text-gray-500 text-sm">Tap green button to call</p>
+                    </div>
+
+                    <!-- Visualizer -->
+                    <div class="relative z-10 my-auto">
+                        <div id="ls-visualizer-idle" class="w-32 h-32 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                           <svg class="w-12 h-12 text-gray-600" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.26-.26.35-.65.24-1.01A11.36 11.36 0 018.59 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 13.98 13.98 0 0013.96 13.96c.55 0 1-.45 1-1v-3.62c.01-.55-.44-1-.99-1z"/></svg>
+                        </div>
+                        <div id="ls-visualizer-active" class="hidden relative">
+                            <!-- Rings -->
+                            <div class="absolute inset-0 rounded-full border border-accent/30 animate-ping-slow"></div>
+                            <div class="absolute inset-0 rounded-full border border-accent/20 animate-ping-slow" style="animation-delay: 0.5s"></div>
+                            
+                            <!-- Main Circle -->
+                            <div id="ls-visualizer-circle" class="w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 bg-gray-800 border border-white/10">
+                                 <!-- Speaking Bars -->
+                                 <div id="ls-visualizer-bars" class="hidden flex gap-1 h-8 items-center">
+                                    <div class="w-1.5 bg-black visualizer-bar"></div>
+                                    <div class="w-1.5 bg-black visualizer-bar" style="animation-delay: 0.1s"></div>
+                                    <div class="w-1.5 bg-black visualizer-bar" style="animation-delay: 0.2s"></div>
+                                </div>
+                                <!-- Listening Icon -->
+                                <div id="ls-visualizer-icon" class="hidden">
+                                    <svg class="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.26-.26.35-.65.24-1.01A11.36 11.36 0 018.59 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 13.98 13.98 0 0013.96 13.96c.55 0 1-.45 1-1v-3.62c.01-.55-.44-1-.99-1z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="w-full max-w-xs grid grid-cols-3 gap-6 z-10 h-[64px] items-center">
+                        <!-- Idle: Start Button -->
+                        <button id="ls-btn-start-call" class="col-span-3 bg-accent hover:bg-accent-hover text-black font-bold py-4 rounded-full shadow-[0_0_30px_rgba(52,211,153,0.3)] transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.26-.26.35-.65.24-1.01A11.36 11.36 0 018.59 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 13.98 13.98 0 0013.96 13.96c.55 0 1-.45 1-1v-3.62c.01-.55-.44-1-.99-1z"/></svg>
+                             Start Demo Call
+                        </button>
+
+                        <!-- Active: Controls -->
+                        <button id="ls-btn-mute" class="hidden h-14 w-14 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors mx-auto">
+                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                        </button>
+                        
+                        <button id="ls-btn-end-call" class="hidden h-16 w-16 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110 mx-auto">
+                            <svg class="w-8 h-8 transform rotate-135" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.26-.26.35-.65.24-1.01A11.36 11.36 0 018.59 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 13.98 13.98 0 0013.96 13.96c.55 0 1-.45 1-1v-3.62c.01-.55-.44-1-.99-1z"/></svg>
+                        </button>
+
+                        <button id="ls-btn-keypad" class="hidden h-14 w-14 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors mx-auto">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <p class="text-[10px] uppercase tracking-widest text-gray-600 mt-6 font-semibold">Powered by Gemini 1.5 Flash</p>
+        </div>
+
+        <!-- Features Section -->
+        <section class="mb-32">
+            <h2 class="text-3xl font-bold mb-12 text-center text-white">Built for Sri Lanka by Sri Lankans</h2>
+            <div class="grid md:grid-cols-3 gap-6 text-left">
+                <div class="p-8 rounded-2xl bg-card-bg border border-white/5 hover:border-accent/30 transition-colors group">
+                    <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 text-2xl group-hover:bg-accent group-hover:text-black transition-all duration-300">🇱🇰</div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Trilingual Support</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm">
+                        Our AI handles English, Singlish, and Sinhala fluently. It switches languages automatically based on the caller.
+                    </p>
+                </div>
+                <div class="p-8 rounded-2xl bg-card-bg border border-white/5 hover:border-accent/30 transition-colors group">
+                    <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 text-2xl group-hover:bg-accent group-hover:text-black transition-all duration-300">⚡</div>
+                    <h3 class="text-xl font-bold mb-3 text-white">0s Hold Time</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm">
+                        Never put a customer on hold again. Handle 100 concurrent calls simultaneously without missing a beat.
+                    </p>
+                </div>
+                <div class="p-8 rounded-2xl bg-card-bg border border-white/5 hover:border-accent/30 transition-colors group">
+                    <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 text-2xl group-hover:bg-accent group-hover:text-black transition-all duration-300">💬</div>
+                    <h3 class="text-xl font-bold mb-3 text-white">WhatsApp Sync</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm">
+                        Automatically send booking confirmations and menu links to callers via WhatsApp immediately after the call.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing/Beta -->
+        <section class="mb-24 w-full">
+            <div class="bg-gradient-to-br from-card-bg to-[#0B1221] border border-white/10 rounded-3xl p-8 md:p-12 max-w-2xl mx-auto text-center relative overflow-hidden shadow-[0_0_50px_-15px_rgba(52,211,153,0.1)]">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -z-10"></div>
+                
+                <h2 class="text-3xl font-bold mb-4 text-white">Join the Beta</h2>
+                <p class="text-gray-400 mb-8 max-w-md mx-auto">
+                    We are currently onboarding a limited number of businesses. Sign up now to get early access.
+                </p>
+                
+                <ul class="text-gray-300 space-y-4 mb-10 text-left max-w-xs mx-auto font-medium">
+                    <li class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        Priority Onboarding
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        Custom Voice Setup
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                        24/7 Support
+                    </li>
+                </ul>
+
+                <a href="https://wa.me/94770000000" target="_blank" class="block relative z-10">
+                    <button class="w-full bg-accent hover:bg-accent-hover text-slate-900 font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20">
+                        Sign Up for Beta Version
+                    </button>
+                </a>
+                <p class="mt-4 text-xs text-gray-500 font-medium">Limited spots available for Colombo businesses.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full border-t border-white/5 py-12 text-center text-sm text-gray-600 bg-black/20">
+        <p>&copy; 2026 SwiftReply. All rights reserved.</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script type="module">
+        import { GoogleGenAI, Modality } from "@google/genai";
+
+        // --- GEMINI SERVICE ---
+        
+        const BotPersona = {
+            MEDICAL: 'MEDICAL',
+            RESTAURANT: 'RESTAURANT'
+        };
+
+        const getSystemInstruction = (persona) => {
+            if (persona === BotPersona.RESTAURANT) {
+                return `You are a friendly, efficient restaurant receptionist for a busy spot in Colombo, Sri Lanka. 
+                You speak in a mix of English and 'Singlish' (Sri Lankan English). 
+                Use terms like "Sir/Madam", "Can", "No problem", "Short eats".
+                Keep responses short (under 25 words).
+                Your goal is to confirm reservations or answer menu questions.
+                If asked about availability, say you have tables.`;
+            } else {
+                return `You are a professional medical receptionist for a Dental Clinic in Colombo 7.
+                You speak fluent, formal English.
+                You are polite, empathetic, and efficient.
+                Keep responses short (under 25 words).
+                Your goal is to schedule appointments.`;
+            }
+        };
+
+        const generateBotResponse = async (userMessage, persona, history) => {
+            try {
+                if (!process.env.API_KEY || process.env.API_KEY === 'YOUR_GEMINI_API_KEY') {
+                    console.error("API Key missing");
+                    return "System: API Key not configured. Please check source code.";
+                }
+
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                const model = 'gemini-3-flash-preview';
+
+                const response = await ai.models.generateContent({
+                    model,
+                    contents: [
+                        ...history,
+                        { role: 'user', parts: [{ text: userMessage }] }
+                    ],
+                    config: {
+                        systemInstruction: getSystemInstruction(persona),
+                        maxOutputTokens: 100,
+                        temperature: 0.7,
+                    },
+                });
+
+                return response.text || "I apologize, I didn't quite catch that.";
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "I'm having trouble connecting right now. Please try again.";
+            }
+        };
+
+        const base64ToFloat32Array = (base64) => {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const int16 = new Int16Array(bytes.buffer);
+            const float32 = new Float32Array(int16.length);
+            for (let i = 0; i < int16.length; i++) {
+                float32[i] = int16[i] / 32768.0;
+            }
+            return float32;
+        };
+
+        const writeWavHeader = (sampleRate, numChannels, numFrames) => {
+            const buffer = new ArrayBuffer(44);
+            const view = new DataView(buffer);
+            view.setUint32(0, 0x52494646, false); 
+            view.setUint32(4, 36 + numFrames * 2, true); 
+            view.setUint32(8, 0x57415645, false); 
+            view.setUint32(12, 0x666d7420, false); 
+            view.setUint32(16, 16, true); 
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, numChannels, true); 
+            view.setUint32(24, sampleRate, true); 
+            view.setUint32(28, sampleRate * numChannels * 2, true); 
+            view.setUint16(32, numChannels * 2, true); 
+            view.setUint16(34, 16, true); 
+            view.setUint32(36, 0x64617461, false); 
+            view.setUint32(40, numFrames * 2, true); 
+            return buffer;
+        };
+
+        const pcmToWavBlob = (data, sampleRate = 24000) => {
+            const numChannels = 1;
+            const header = writeWavHeader(sampleRate, numChannels, data.length);
+            const pcm16 = new Int16Array(data.length);
+            for (let i = 0; i < data.length; i++) {
+                const s = Math.max(-1, Math.min(1, data[i]));
+                pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            return new Blob([header, pcm16], { type: 'audio/wav' });
+        };
+
+        const generateSpeech = async (text, voiceName) => {
+            try {
+                if (!process.env.API_KEY || process.env.API_KEY === 'YOUR_GEMINI_API_KEY') return null;
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{ parts: [{ text }] }],
+                    config: {
+                        responseModalities: [Modality.AUDIO],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName },
+                            },
+                        },
+                    },
+                });
+
+                const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                if (base64Audio) {
+                    const pcmData = base64ToFloat32Array(base64Audio);
+                    const wavBlob = pcmToWavBlob(pcmData, 24000);
+                    return URL.createObjectURL(wavBlob);
+                }
+                return null;
+            } catch (error) {
+                console.error("Speech generation error:", error);
+                return null;
+            }
+        };
+
+        const generateConversation = async (script, speakers) => {
+            try {
+                if (!process.env.API_KEY || process.env.API_KEY === 'YOUR_GEMINI_API_KEY') return null;
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                
+                const speakerVoiceConfigs = speakers.map(s => ({
+                    speaker: s.name,
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: s.voiceName } }
+                }));
+
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{ parts: [{ text: script }] }],
+                    config: {
+                        responseModalities: [Modality.AUDIO],
+                        speechConfig: {
+                            multiSpeakerVoiceConfig: {
+                                speakerVoiceConfigs: speakerVoiceConfigs
+                            }
+                        }
+                    }
+                });
+
+                const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                if (base64Audio) {
+                    const pcmData = base64ToFloat32Array(base64Audio);
+                    const wavBlob = pcmToWavBlob(pcmData, 24000);
+                    return URL.createObjectURL(wavBlob);
+                }
+                return null;
+            } catch (error) {
+                console.error("Conversation generation error", error);
+                return null;
+            }
+        }
+
+        // --- AUDIO PLAYER COMPONENT LOGIC ---
+        document.querySelectorAll('.audio-player-container').forEach(container => {
+            const playBtn = container.querySelector('.play-btn');
+            const loadingInd = container.querySelector('.loading-indicator');
+            const audioWrapper = container.querySelector('.audio-wrapper');
+            const errorMsg = container.querySelector('.error-msg');
+            
+            const script = container.dataset.script;
+            const speakers = JSON.parse(container.dataset.speakers || '[]');
+
+            playBtn.addEventListener('click', async () => {
+                // UI Loading
+                playBtn.classList.add('hidden');
+                loadingInd.classList.remove('hidden');
+                errorMsg.classList.add('hidden');
+
+                const url = await generateConversation(script, speakers);
+
+                if (url) {
+                    loadingInd.classList.add('hidden');
+                    audioWrapper.classList.remove('hidden');
+                    audioWrapper.innerHTML = `<audio controls autoplay class="w-full focus:outline-none focus:ring-2 focus:ring-accent rounded-lg invert-[.9] hue-rotate-180 brightness-75"><source src="${url}" type="audio/wav"></audio>`;
+                } else {
+                    loadingInd.classList.add('hidden');
+                    playBtn.classList.remove('hidden');
+                    errorMsg.classList.remove('hidden');
+                }
+            });
+        });
+
+        // --- LIVE SIMULATOR LOGIC ---
+        const ls = {
+            mode: 'text',
+            persona: BotPersona.RESTAURANT,
+            chatMessages: [],
+            isChatLoading: false,
+            callStatus: 'idle', // idle, connecting, active
+            callStep: 'listening', // listening, processing, speaking
+            callTimer: 0,
+            intervalId: null,
+            audio: null,
+            recognition: null,
+            stopRingback: null,
+            
+            // DOM Elements
+            els: {
+                container: document.getElementById('ls-container'),
+                btnText: document.getElementById('ls-btn-text'),
+                btnVoice: document.getElementById('ls-btn-voice'),
+                viewText: document.getElementById('ls-view-text'),
+                viewVoice: document.getElementById('ls-view-voice'),
+                
+                // Text UI
+                personaAvatar: document.getElementById('ls-persona-avatar'),
+                personaName: document.getElementById('ls-persona-name'),
+                btnSwitch: document.getElementById('ls-btn-switch-persona'),
+                msgContainer: document.getElementById('ls-chat-messages'),
+                suggestions: document.getElementById('ls-suggestions'),
+                input: document.getElementById('ls-chat-input'),
+                form: document.getElementById('ls-chat-form'),
+                
+                // Voice UI
+                vPersonaName: document.getElementById('ls-voice-persona-name'),
+                vGlow: document.getElementById('ls-voice-glow'),
+                vStatusActive: document.getElementById('ls-voice-status-active'),
+                vStatusConnecting: document.getElementById('ls-voice-status-connecting'),
+                vStatusIdle: document.getElementById('ls-voice-status-idle'),
+                vTimer: document.getElementById('ls-voice-timer'),
+                vStateText: document.getElementById('ls-voice-state-text'),
+                vVisIdle: document.getElementById('ls-visualizer-idle'),
+                vVisActive: document.getElementById('ls-visualizer-active'),
+                vVisCircle: document.getElementById('ls-visualizer-circle'),
+                vVisBars: document.getElementById('ls-visualizer-bars'),
+                vVisIcon: document.getElementById('ls-visualizer-icon'),
+                
+                btnStartCall: document.getElementById('ls-btn-start-call'),
+                btnEndCall: document.getElementById('ls-btn-end-call'),
+                btnMute: document.getElementById('ls-btn-mute'),
+                btnKeypad: document.getElementById('ls-btn-keypad')
+            },
+
+            init() {
+                this.updatePersonaUI();
+                this.addSystemMessage();
+                this.renderSuggestions();
+                
+                // Listeners
+                this.els.btnText.onclick = () => this.setMode('text');
+                this.els.btnVoice.onclick = () => this.setMode('voice');
+                this.els.btnSwitch.onclick = () => this.switchPersona();
+                this.els.form.onsubmit = (e) => this.handleTextSubmit(e);
+                this.els.btnStartCall.onclick = () => this.startCall();
+                this.els.btnEndCall.onclick = () => this.endCall();
+            },
+
+            setMode(mode) {
+                this.mode = mode;
+                if (mode === 'text') {
+                    this.endCall(); // Safety
+                    this.els.btnText.className = "px-4 py-1.5 rounded-full text-xs font-medium transition-all bg-white text-black shadow-lg";
+                    this.els.btnVoice.className = "px-4 py-1.5 rounded-full text-xs font-medium transition-all text-gray-400 hover:text-white";
+                    this.els.viewText.classList.remove('hidden');
+                    this.els.viewVoice.classList.add('hidden');
+                } else {
+                    this.els.btnText.className = "px-4 py-1.5 rounded-full text-xs font-medium transition-all text-gray-400 hover:text-white";
+                    this.els.btnVoice.className = "px-4 py-1.5 rounded-full text-xs font-medium transition-all bg-accent text-black shadow-lg shadow-emerald-500/20";
+                    this.els.viewText.classList.add('hidden');
+                    this.els.viewVoice.classList.remove('hidden');
+                }
+            },
+
+            switchPersona() {
+                this.persona = this.persona === BotPersona.RESTAURANT ? BotPersona.MEDICAL : BotPersona.RESTAURANT;
+                this.chatMessages = []; // Clear chat on switch
+                this.updatePersonaUI();
+                this.addSystemMessage();
+                this.renderSuggestions();
+                // Clear chat DOM
+                this.els.msgContainer.innerHTML = '';
+                this.renderMessages(); 
+            },
+
+            updatePersonaUI() {
+                const name = this.persona === BotPersona.RESTAURANT ? 'Colombo Spice' : 'City Dental';
+                const initials = this.persona === BotPersona.RESTAURANT ? 'CS' : 'CD';
+                
+                this.els.personaName.textContent = name;
+                this.els.personaAvatar.textContent = initials;
+                this.els.vPersonaName.textContent = name;
+            },
+
+            addSystemMessage() {
+                const text = this.persona === BotPersona.RESTAURANT 
+                    ? "Ayubowan! Welcome to Colombo Spice. How can I help you?"
+                    : "Good morning. Dr. Perera's Dental Clinic.";
+                this.chatMessages.push({ role: 'model', text });
+                this.renderMessages();
+            },
+
+            renderSuggestions() {
+                const qs = this.persona === BotPersona.RESTAURANT 
+                    ? ["Book a table for 2", "Do you have parking?", "Are you open now?"]
+                    : ["Book an appointment", "Price for cleaning?", "Where are you located?"];
+                
+                this.els.suggestions.innerHTML = qs.map(q => 
+                    `<button class="suggestion-btn whitespace-nowrap px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-gray-400 hover:text-accent hover:border-accent/30 transition-colors">${q}</button>`
+                ).join('');
+
+                this.els.suggestions.querySelectorAll('.suggestion-btn').forEach((btn, i) => {
+                    btn.onclick = () => this.handleTextSubmit(null, qs[i]);
+                });
+            },
+
+            async handleTextSubmit(e, overrideText) {
+                if(e) e.preventDefault();
+                const text = overrideText || this.els.input.value;
+                if(!text.trim() || this.isChatLoading) return;
+
+                this.els.input.value = '';
+                this.chatMessages.push({ role: 'user', text });
+                this.renderMessages();
+                this.isChatLoading = true;
+                this.showTypingIndicator();
+
+                const history = this.chatMessages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+                const response = await generateBotResponse(text, this.persona, history);
+
+                this.isChatLoading = false;
+                this.chatMessages.push({ role: 'model', text: response });
+                this.renderMessages();
+            },
+
+            renderMessages() {
+                this.els.msgContainer.innerHTML = this.chatMessages.map(msg => `
+                    <div class="flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div class="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${msg.role === 'user' ? 'bg-accent text-slate-900 font-medium rounded-br-none' : 'bg-white/10 text-gray-200 rounded-bl-none'}">
+                            ${msg.text}
+                        </div>
+                    </div>
+                `).join('');
+                this.els.msgContainer.scrollTop = this.els.msgContainer.scrollHeight;
+            },
+
+            showTypingIndicator() {
+                const div = document.createElement('div');
+                div.className = "flex justify-start";
+                div.innerHTML = `
+                    <div class="bg-white/5 rounded-2xl rounded-bl-none px-4 py-3 flex space-x-1">
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>`;
+                this.els.msgContainer.appendChild(div);
+                this.els.msgContainer.scrollTop = this.els.msgContainer.scrollHeight;
+            },
+
+            // --- VOICE CALL LOGIC ---
+
+            playRingback() {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return () => {};
+                const ctx = new AudioContext();
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc1.type = 'sine'; osc1.frequency.value = 440;
+                osc2.type = 'sine'; osc2.frequency.value = 480;
+                gain.gain.value = 0.05;
+
+                osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+                osc1.start(now); osc2.start(now);
+                gain.gain.setValueAtTime(0.05, now + 2);
+                gain.gain.linearRampToValueAtTime(0, now + 2.1);
+                osc1.stop(now + 4); osc2.stop(now + 4);
+
+                return () => {
+                    try {
+                        osc1.stop(); osc2.stop();
+                        if (ctx.state !== 'closed') ctx.close();
+                    } catch(e) {}
+                };
+            },
+
+            startCall() {
+                // IMPORTANT: AudioContext must be resumed or created on user gesture.
+                // The click on the "Start Call" button is that gesture.
+                
+                this.callStatus = 'connecting';
+                this.updateVoiceUI();
+                
+                this.stopRingback = this.playRingback();
+
+                setTimeout(() => {
+                    if (this.stopRingback) this.stopRingback();
+                    this.callStatus = 'active';
+                    this.callStep = 'speaking';
+                    this.callTimer = 0;
+                    this.intervalId = setInterval(() => {
+                        this.callTimer++;
+                        const mins = Math.floor(this.callTimer / 60).toString().padStart(2,'0');
+                        const secs = (this.callTimer % 60).toString().padStart(2,'0');
+                        this.els.vTimer.textContent = `${mins}:${secs}`;
+                    }, 1000);
+                    
+                    this.updateVoiceUI();
+                    this.playGreeting();
+                }, 2500);
+            },
+
+            endCall() {
+                this.callStatus = 'idle';
+                this.callStep = 'listening';
+                this.updateVoiceUI();
+                if (this.stopRingback) this.stopRingback();
+                if (this.intervalId) clearInterval(this.intervalId);
+                if (this.audio) { this.audio.pause(); this.audio = null; }
+                if (this.recognition) this.recognition.stop();
+            },
+
+            updateVoiceUI() {
+                const { container, btnStartCall, btnEndCall, btnMute, btnKeypad, vGlow, vStatusActive, vStatusConnecting, vStatusIdle, vVisIdle, vVisActive, vVisCircle, vVisBars, vVisIcon, vStateText } = this.els;
+
+                // Reset
+                vGlow.classList.add('hidden');
+                vStatusActive.classList.add('hidden');
+                vStatusConnecting.classList.add('hidden');
+                vStatusIdle.classList.add('hidden');
+                vVisIdle.classList.add('hidden');
+                vVisActive.classList.add('hidden');
+                btnStartCall.classList.add('hidden');
+                btnEndCall.classList.add('hidden');
+                btnMute.classList.add('hidden');
+                btnKeypad.classList.add('hidden');
+                vVisBars.classList.add('hidden');
+                vVisIcon.classList.add('hidden');
+                vVisCircle.classList.remove('bg-accent', 'scale-105', 'shadow-[0_0_40px_rgba(52,211,153,0.4)]');
+                vVisCircle.classList.add('bg-gray-800', 'border', 'border-white/10');
+
+                if (this.callStatus === 'idle') {
+                    vStatusIdle.classList.remove('hidden');
+                    vVisIdle.classList.remove('hidden');
+                    btnStartCall.classList.remove('hidden');
+                } else if (this.callStatus === 'connecting') {
+                    vStatusConnecting.classList.remove('hidden');
+                    vVisActive.classList.remove('hidden');
+                    vVisIcon.classList.remove('hidden');
+                    btnEndCall.classList.remove('hidden');
+                    btnMute.classList.remove('hidden');
+                    btnKeypad.classList.remove('hidden');
+                } else if (this.callStatus === 'active') {
+                    vGlow.classList.remove('hidden');
+                    vStatusActive.classList.remove('hidden');
+                    vVisActive.classList.remove('hidden');
+                    btnEndCall.classList.remove('hidden');
+                    btnMute.classList.remove('hidden');
+                    btnKeypad.classList.remove('hidden');
+                    
+                    if (this.callStep === 'speaking') {
+                        vStateText.textContent = "Speaking...";
+                        vStateText.className = "text-xs font-medium uppercase tracking-wider text-accent";
+                        vVisBars.classList.remove('hidden');
+                        vVisCircle.classList.remove('bg-gray-800', 'border', 'border-white/10');
+                        vVisCircle.classList.add('bg-accent', 'scale-105', 'shadow-[0_0_40px_rgba(52,211,153,0.4)]');
+                    } else if (this.callStep === 'listening') {
+                        vStateText.textContent = "Listening...";
+                        vStateText.className = "text-xs font-medium uppercase tracking-wider text-gray-500";
+                        vVisIcon.classList.remove('hidden');
+                    } else {
+                        vStateText.textContent = "Thinking...";
+                        vStateText.className = "text-xs font-medium uppercase tracking-wider text-accent animate-pulse";
+                        vVisIcon.classList.remove('hidden');
+                    }
+                }
+            },
+
+            async playGreeting() {
+                const greeting = this.persona === BotPersona.RESTAURANT 
+                    ? "Hello, Colombo Spice. How can I help?" 
+                    : "Hello, City Dental.";
+                await this.playAudioResponse(greeting);
+            },
+
+            startListening() {
+                if (!('webkitSpeechRecognition' in window)) {
+                    alert("Speech recognition is only supported in Chrome, Edge, and other Chromium browsers.");
+                    this.endCall();
+                    return;
+                }
+                
+                this.callStep = 'listening';
+                this.updateVoiceUI();
+
+                const SpeechRecognition = window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                this.recognition = recognition;
+
+                recognition.onresult = async (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    this.callStep = 'processing';
+                    this.updateVoiceUI();
+                    
+                    const response = await generateBotResponse(transcript, this.persona, []);
+                    await this.playAudioResponse(response);
+                };
+
+                recognition.onerror = () => {
+                   // Keep listening or silent error
+                };
+
+                recognition.start();
+            },
+
+            async playAudioResponse(text) {
+                this.callStep = 'speaking';
+                this.updateVoiceUI();
+                
+                const voiceName = this.persona === BotPersona.RESTAURANT ? 'Fenrir' : 'Kore';
+                const url = await generateSpeech(text, voiceName);
+                
+                if (url) {
+                    this.audio = new Audio(url);
+                    this.audio.onended = () => {
+                        this.startListening();
+                    };
+                    this.audio.play();
+                } else {
+                    this.startListening();
+                }
+            }
+        };
+
+        // Init App
+        ls.init();
+
+    </script>
+</body>
+</html>
