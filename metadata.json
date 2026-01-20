@@ -1,0 +1,7 @@
+{
+  "name": "SwiftReply",
+  "description": "Minimalist, high-conversion landing page for an AI receptionist agency targeting Sri Lankan businesses.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
